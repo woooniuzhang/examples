@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mypv
+  name: local-pv
   labels:
     usage: test
 spec:
@@ -28,7 +28,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mypvc
+  name: local-pvc
+  namespace: default
 spec:
   resources:
     requests: 5Gi
@@ -60,7 +61,7 @@ spec:
       volumes:
         - name: local-pvc
           persistentVolumeClaim:
-            claimName: mypvc
+            claimName: local-pvc
       containers:
         - name: nginx
           image: nginx
