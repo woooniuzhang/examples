@@ -1,5 +1,5 @@
 # 项目介绍
-Kubernetes自定义组件、Prometheus监控相关小demo，已共快速熟悉开发使用。
+Kubernetes自定义组件、Prometheus监控相关小demo，以供快速熟悉开发使用。
 
 ## Kubernetes
 - mutatingwebhook
