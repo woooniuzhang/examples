@@ -7,7 +7,7 @@ import (
 )
 
 // json官方指定的patch结构为 `{"op":"add|remove|replace", "path":"/a/b", "value":xxx}`
-// 还原成golang struc就如下所示了。
+// 还原成golang struct就如下所示了。
 type Patch struct {
 	Op    string      `json:"op"`
 	Path  string      `json:"path"`
@@ -15,7 +15,7 @@ type Patch struct {
 }
 
 //需要针对，针对新增资源的操作只能在最外层整体进行，而不能针对其成员
-//注意: 只是针对新增资源, 不知道是不是包的原因
+//注意: 只是针对新增资源, 不知道是不是包的原因,原因待深究
 
 func main() {
 	original := `{"name":"woniu","ages":[100,200],"infos":[{"shortname":"st1","place":"kaifeng"}]}`
