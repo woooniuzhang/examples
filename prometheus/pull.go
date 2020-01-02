@@ -12,6 +12,7 @@ import (
 
 var pullCounterVec *prometheus.CounterVec
 var pullHistogramVec *prometheus.HistogramVec
+var pullGuageVec *prometheus.GaugeVec
 
 func init() {
 	pullCounterVec = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -25,10 +26,16 @@ func init() {
 		Buckets: []float64{10, 100, 500, 1000},
 	}, []string{"method", "path"})
 
+	pullGuageVec = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "server_memory_usage",
+		Help: "the usage memory of server",
+	}, []string{"pod_ip"})
+
 	//将此metric信息注册进Gather中，这样在提供metrics接口时就可以
 	//按照prometheus的方式将metric展现出来了
 	prometheus.MustRegister(pullCounterVec)
 	prometheus.MustRegister(pullHistogramVec)
+	prometheus.MustRegister(pullGuageVec)
 }
 
 func Middleware(fn echo.HandlerFunc) echo.HandlerFunc {
@@ -44,12 +51,16 @@ func Middleware(fn echo.HandlerFunc) echo.HandlerFunc {
 		pullCounterVec.With(prometheus.Labels{
 			"path":ctx.Path(),
 			"method": ctx.Request().Method,
-		}).Add(1)
+		}).Inc()
 
 		pullHistogramVec.With(prometheus.Labels{
 			"path": ctx.Path(),
 			"method": ctx.Request().Method,
 		}).Observe(float64(time.Since(now).Milliseconds()))
+
+		pullGuageVec.With(prometheus.Labels{
+			"pod_ip": "127.0.0.1",
+		}).Set(100.46)
 
 		return fn(ctx)
 	}

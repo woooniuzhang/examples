@@ -17,6 +17,7 @@ func TestHandler(ctx echo.Context) error {
 
 var counterVec *prometheus.CounterVec
 var histogramVec *prometheus.HistogramVec
+var guageVec *prometheus.GaugeVec
 
 func init() {
 	//注意第二个参数,里面指定的label在Add的时候必须要体现到，否则会panic
@@ -37,6 +38,11 @@ func init() {
 		Buckets:[]float64{10, 100, 500, 1000},
 	}, []string{"path", "method"})
 
+	guageVec = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "pod_memory_usage",
+		Help: "the memory of this pod using",
+	}, []string{"pod_id"})
+
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -49,6 +55,7 @@ func init() {
 		// docker run -it -p 9091:9091 prom/pushgateway
 		httpRequestPusher := push.New("http://127.0.0.1:9091", "http_request").Collector(counterVec)
 		httpRequestDurationPusher := push.New("http://127.0.0.1:9091", "http_request_duration").Collector(histogramVec)
+		podMemoryUsagePusher := push.New("http://127.0.0.1:9091", "pod_memory_usage").Collector(guageVec)
 		for {
 			select {
 			case <-timer.C:
@@ -58,6 +65,10 @@ func init() {
 
 				if err := httpRequestDurationPusher.Push(); err != nil {
 					log.Panicf("push duration metric error: %v", err)
+				}
+
+				if err := podMemoryUsagePusher.Push(); err != nil {
+					log.Panicf("push memory usage failed: %v", err)
 				}
 				timer.Reset(time.Second * 5)
 			}
@@ -85,6 +96,10 @@ func PrometheusMiddleware(fn echo.HandlerFunc) echo.HandlerFunc {
 			"method": ctx.Request().Method,
 		}).Observe(float64(time.Since(now).Milliseconds()))
 
+		guageVec.With(prometheus.Labels{
+			"pod_id": "127.0.0.1",
+		}).Set(100.65)
+
 
 		return fn(ctx)
 	}
@@ -92,9 +107,9 @@ func PrometheusMiddleware(fn echo.HandlerFunc) echo.HandlerFunc {
 
 func Push() {
 	server := echo.New()
+	server.Use(PrometheusMiddleware)
 	server.GET("/test1", TestHandler)
 	server.GET("/test2", TestHandler)
-	server.Use(PrometheusMiddleware)
 	if err := server.Start(":9090"); err != nil {
 		panic(err)
 	}
