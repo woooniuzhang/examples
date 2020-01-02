@@ -25,12 +25,12 @@ func init() {
 		ConstLabels: prometheus.Labels{
 			"svcName": "echo-test",
 		},
-		Help:"request total",
+		Help:"the total request of all requests",
 	}, []string{"path","method"})
 
 	histogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:        "http_request_duration",
-		Help:        "http_request_duration",
+		Help:        "the duration of the request",
 		ConstLabels: prometheus.Labels{
 			"svcName": "echo-test",
 		},

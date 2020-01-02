@@ -16,12 +16,12 @@ var pullHistogramVec *prometheus.HistogramVec
 func init() {
 	pullCounterVec = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "http_request_total",
-		Help: "http_request_total",
+		Help: "the total number of all requests",
 	}, []string{"method","path"})
 
 	pullHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:        "http_request_duration",
-		Help:        "http_request_duration",
+		Help:        "the duration of the request",
 		Buckets: []float64{10, 100, 500, 1000},
 	}, []string{"method", "path"})
 
