@@ -22,6 +22,7 @@ func init() {
 	pullHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:        "http_request_duration",
 		Help:        "http_request_duration",
+		Buckets: []float64{10, 100, 500, 1000},
 	}, []string{"method", "path"})
 
 	//将此metric信息注册进Gather中，这样在提供metrics接口时就可以
