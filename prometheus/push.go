@@ -16,16 +16,26 @@ func TestHandler(ctx echo.Context) error {
 }
 
 var counterVec *prometheus.CounterVec
+var histogramVec *prometheus.HistogramVec
 
 func init() {
 	//注意第二个参数,里面指定的label在Add的时候必须要体现到，否则会panic
 	counterVec = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "http_request_total",
 		ConstLabels: prometheus.Labels{
-			"svcName": "echo",
+			"svcName": "echo-test",
 		},
 		Help:"request total",
 	}, []string{"path","method"})
+
+	histogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:        "http_request_duration",
+		Help:        "http_request_duration",
+		ConstLabels: prometheus.Labels{
+			"svcName": "echo-test",
+		},
+		Buckets:[]float64{10, 100, 500, 1000},
+	}, []string{"path", "method"})
 
 	go func() {
 		defer func() {
@@ -37,12 +47,17 @@ func init() {
 
 		// docker pull prom/pushgateway
 		// docker run -it -p 9091:9091 prom/pushgateway
-		pusher := push.New("http://127.0.0.1:9091", "http_request").Collector(counterVec)
+		httpRequestPusher := push.New("http://127.0.0.1:9091", "http_request").Collector(counterVec)
+		httpRequestDurationPusher := push.New("http://127.0.0.1:9091", "http_request_duration").Collector(histogramVec)
 		for {
 			select {
 			case <-timer.C:
-				if err := pusher.Push(); err != nil {
-					log.Printf("push metri error: %v", err)
+				if err := httpRequestPusher.Push(); err != nil {
+					log.Printf("push metric error: %v", err)
+				}
+
+				if err := httpRequestDurationPusher.Push(); err != nil {
+					log.Panicf("push duration metric error: %v", err)
 				}
 				timer.Reset(time.Second * 5)
 			}
@@ -52,6 +67,8 @@ func init() {
 
 func PrometheusMiddleware(fn echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
+		now := time.Now()
+
 		defer func() {
 			if err := recover(); err != nil {
 				log.Printf("middleware panic: %v", err)
@@ -62,6 +79,12 @@ func PrometheusMiddleware(fn echo.HandlerFunc) echo.HandlerFunc {
 			"path":ctx.Path(),
 			"method": ctx.Request().Method,
 		}).Add(1)
+
+		histogramVec.With(prometheus.Labels{
+			"path": ctx.Path(),
+			"method": ctx.Request().Method,
+		}).Observe(float64(time.Since(now).Milliseconds()))
+
 
 		return fn(ctx)
 	}
