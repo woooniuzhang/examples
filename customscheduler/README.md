@@ -5,4 +5,4 @@
 - 需要注意, 如果Pod.spec.schedulerName设定了一个错误值，那该Pod就不会被成功调度了。  
 
 ##部署
-- 将custom-scheduler部署为一个不同的deployment即可。
+- 将custom-scheduler部署为一个普通的deployment即可。
