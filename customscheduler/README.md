@@ -7,3 +7,6 @@
 ## 部署
 - 将custom-scheduler部署为一个普通的deployment即可。
 - 本地调试开发设定KUBE_CONFIG_PATH为kubeconfig文件路径即可, 集群中部署设定为空即可
+
+## 说明
+- 本地可用
