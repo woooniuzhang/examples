@@ -16,7 +16,7 @@ import (
 const (
 	CUSTOM_SCHEDULER_NAME = "example"
 	MASTER_URL = ""
-	KUBE_CONFIG_PATH = "/Users/woniuxiaoan/.kube/config"
+	KUBE_CONFIG_PATH = ""
 )
 
 var client kubernetes.Interface
