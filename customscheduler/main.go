@@ -1,4 +1,4 @@
-package customscheduler
+package main
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 const (
 	CUSTOM_SCHEDULER_NAME = "example"
 	MASTER_URL = ""
-	KUBE_CONFIG_PATH = ""
+	KUBE_CONFIG_PATH = "/Users/woniuxiaoan/.kube/config"
 )
 
 var client kubernetes.Interface
@@ -42,6 +42,7 @@ func(pe *PodEventHandler) OnAdd(obj interface{}) {
 			},
 		}); err != nil {
 			glog.Errorf("Binding pod %s to node %s failed: %v", newPod.Name, "10.2.0.8", err)
+			return
 		}
 	}
 
